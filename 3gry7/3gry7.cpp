@@ -4,16 +4,10 @@
 #include <ctime>
 #include <cstdlib>
 #include <conio.h>
-#include <map>
-#include <functional>
-#include <iomanip>
-#include <vector>
-#include <utility>
 using namespace std;
 
 // gra w hasła v3.0
 //nie zapisuje do wektorow tylko na biezaco zczytuje hasla z plikow.
-//w trakcie roboty; dodaj przywrocenie wskaznika na poczatek pliku
 
 int losujHaslo(fstream &plik, int gra)//niech liczy ilosc linii i wtedy randa z tego i wysyla spowrotem
 {
@@ -22,18 +16,17 @@ int losujHaslo(fstream &plik, int gra)//niech liczy ilosc linii i wtedy randa z 
     int nr_linii = 1;
     switch(gra)
     {
-        case 1:{if(plik.good() != true) cout<<"Błąd odczytu hkal.txt"<<endl; else cout<<"odczyt ok"<<endl;
-            while (!plik.eof())//tutaj przed wejsciem do petli odczytuje ok, a po wyjsciu z niej juz nie moze odczytac. Dlaczego????
-            {//dla kalambur w kliku jest haslo pod haslem wiec po prostu zliczamy ilosc linii
+        case 1:{//dla kalambur w kliku jest haslo pod haslem wiec po prostu zliczamy ilosc linii
+            while (!plik.eof())
+            {
                 getline(plik, linia);
-                cout<<"test w petli nr "<<ilosc_hasel;
-                if(plik.good() != true) cout<<"Błąd odczytu hkal.txt"<<endl; else cout<<": odczyt ok"<<endl;
-                ilosc_hasel++;//znacznik przestawic na poczatek pliku!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            }if(plik.good() != true) cout<<"Błąd odczytu hkal.txt"<<endl; else cout<<"odczyt ok"<<endl;
+                ilosc_hasel++;
+            }
         break;}
         case 2: case 3:{//policzymy ilosc hasel a nie linii czyli kolejno: 1. haslo, 2. slowo zakazane, 3. odstep(pusta linia) i dolicza tylko po napotkaniu linii 1
-            while (getline(plik,linia))
+            while (!plik.eof())
             {
+                getline(plik,linia);
                 switch(nr_linii)
                 {
                     case 1: ilosc_hasel++; break;
@@ -43,75 +36,78 @@ int losujHaslo(fstream &plik, int gra)//niech liczy ilosc linii i wtedy randa z 
                 if (nr_linii > 3) nr_linii = 1;
             }
         break;}
-    } cout<<ilosc_hasel<<endl; //uzyskalismy ilosc hasel w pliku i zapisana jest ona w zmiennej ilosc_hasel
-    int result = ((rand() % ilosc_hasel) + 1); cout<<result<<endl;//losujemy jedno z nich
+    }  //uzyskalismy ilosc hasel w pliku i zapisana jest ona w zmiennej ilosc_hasel
+    plik.seekg(0, ios::beg);//ustawiamy ponownie wskaznik w pliku na jego poczatek by dalej mozna bylo go czytac
+    int result = ((rand() % ilosc_hasel) + 1);//losujemy jedno z nich
     return result;//zwracamy numer wylosowanego hasla
 }
 
-string pobierzHaslo(fstream &plik, int numer, int gra, int polowa)
+string pobierzHaslo(fstream &plik, int numer, int gra, int polowa)//argumenty kolejno: zmienna plikowa, numer hasła do wyciągnięcia z pliku, wybrana gra, które z dwóch słów(hasło czy zakazane słowo w czółku) będzie pobierane
 {
     int nr_hasla = 0;
     string linia;
     int nr_linii = 1;
     switch(gra)
     {
-        case 1:{if(plik.good() != true) cout<<"Błąd odczytu hkal.txt"<<endl; else cout<<"odczyt ok"<<endl;
-            while (nr_hasla < numer)
+        case 1:// dla gry nr1 czyli kalambury jest wyciągane tylko jedno słowo z pliku, więc zmienna połowa nie ma znaczenia (tu zawsze wartość 1)
+            while (nr_hasla < numer)//poszukujemy w pliku wylosowanego hasła
             {
                 getline(plik, linia);
                 nr_hasla++;
             }
-        break;}
-        case 2: case 3:{
-            if (polowa = 1) 
+        break;
+        case 2: case 3:{//w czółkach losujemy 2 wyrażenia (w pliku następują po sobie)
+            if (polowa == 1) //losujemy hasło do odgadnięcia
             {
                 while (nr_hasla < numer)
                 {
-                    switch(nr_linii)
+                    switch(nr_linii)//używając getline() przechodzimy do kolejnych linii ale kolejne hasło napotykamy w co 3ciej linii
                     {
-                        case 1: getline(plik, linia); nr_hasla++; break;
-                        case 2: case 3: break;
+                        case 1: {getline(plik, linia); nr_hasla++; break;}
+                        case 2: {getline(plik, linia); break;}
+                        case 3: {getline(plik, linia); break;}
                     }
                     nr_linii++;
                     if (nr_linii > 3) nr_linii = 1;
                 }
             }
-            else if (polowa = 2) 
+            else if (polowa == 2) //losujemy słowo zakazane (nie można go używać do pomocy w zgadywaniu)
             {
                 while (nr_hasla < numer)
                 {
-                    switch(nr_linii)
+                    switch(nr_linii)//szukamy hasła o danym numerze, jak w przypadku (połowa=1)
                     {
-                        case 1: break;
-                        case 2: {getline(plik, linia); nr_hasla++; break;}
-                        case 3: break;
+                        case 1: {getline(plik, linia); nr_hasla++; break;}
+                        case 2: {getline(plik, linia); break;}
+                        case 3: {getline(plik, linia); break;}
                     }
+                    if (nr_hasla == numer) getline(plik, linia);//gdy znaleźliśmy nasze hasło, jego słowo zakazane jest zaraz po nim, więc pobieramy kolejną linię
                     nr_linii++;
                     if (nr_linii > 3) nr_linii = 1;
                 }
             }
         break;}
     }
+    plik.seekg(0, ios::beg);//cofamy wskaźnik na początek pliku
     return linia;
 }
 
-void wyswietlHaslo(fstream &plik, int numer, int gra)//bezie czytal linie z pliku i wyswietlal
+void wyswietlHaslo(fstream &plikGry, int numer, int gra)//bezie czytal linie z pliku i wyswietlal
 {
-    int zakazane = numer + 1;
     switch(gra)
     {
-        case 1: {cout<<"Hasło brzmi: "<<pobierzHaslo(plik, numer, gra, 1)<<endl; break;}
-        case 2: {cout<<"Hasło brzmi: "<<pobierzHaslo(plik, numer, gra, 1)<<endl;// ostatnia cyfra mowi pobierajacej funkcji czy pobrac haslo(1) czy slowo zakazane(2)
-            cout<<"wyrażenie zakazane brzmi: "<<pobierzHaslo(plik, zakazane, gra, 2)<<endl; break;}
-        case 3: {cout<<"Hasło brzmi: "<<pobierzHaslo(plik, numer, gra, 1)<<endl;
-            cout<<"wyrażenie zakazane brzmi: "<<pobierzHaslo(plik, zakazane, gra, 2)<<endl; break;}
+        case 1: {cout<<"Hasło brzmi: "<<pobierzHaslo(plikGry, numer, gra, 1)<<endl; break;}
+        case 2: {cout<<"Hasło brzmi: "<<pobierzHaslo(plikGry, numer, gra, 1)<<endl;// ostatnia cyfra mowi pobierajacej funkcji czy pobrac haslo(1) czy slowo zakazane(2)
+            cout<<"wyrażenie zakazane brzmi: "<<pobierzHaslo(plikGry, numer, gra, 2)<<endl; break;}
+        case 3: {cout<<"Hasło brzmi: "<<pobierzHaslo(plikGry, numer, gra, 1)<<endl;
+            cout<<"wyrażenie zakazane brzmi: "<<pobierzHaslo(plikGry, numer, gra, 2)<<endl; break;}
     }
     cout<<"\nPo odgadnięciu hasła, wciśnij dowolny klawisz.\n";
     getch();
 }
 
 
-void menuGry(string nazwa, int gra, fstream &plikGry)//spr czy pobiera prawidlowo i przekaz dalej do losowania odpowiednio
+void menuGry(string nazwa, int gra, fstream &plikGry)//argumenty kolejno: nazwa gry, numer wybranej gry, zmienna plikowa
 {
     char wybor = '5';
     int nr_hasla = 0;
@@ -122,18 +118,18 @@ void menuGry(string nazwa, int gra, fstream &plikGry)//spr czy pobiera prawidlow
         wybor = getch();
         switch (wybor)
         {
-            case '1': {
+            case '1': {//zależnie od wyboru gry (1=kalambury; 2=czółko; 3=czółko-batman) uruchamia losowanie numeru hasła, a potem jego wyświetlanie przekazując informację o tym, która gra została wybrana
                 if (gra == 1) {nr_hasla = losujHaslo(plikGry, gra); wyswietlHaslo(plikGry, nr_hasla, gra);}
                 else if (gra == 2) {nr_hasla = losujHaslo(plikGry, gra); wyswietlHaslo(plikGry, nr_hasla, gra);}
                 else if (gra == 3) {nr_hasla = losujHaslo(plikGry, gra); wyswietlHaslo(plikGry, nr_hasla, gra);}
                 break;}
-            case '2': cout<<"Powrót do menu...\n"; Sleep(1000);break;
-            default: cout<<"Błędny wybór"; wybor = '5'; Sleep(1000);
+            case '2': cout<<"Powrót do menu...\n"; Sleep(800);break;
+            default: cout<<"Błędny wybór"; wybor = '5'; Sleep(800);
         }
     }
 }
 
-void menuGlowne(fstream &hkal, fstream &hcz, fstream &hczb)
+void menuGlowne(fstream &hkal, fstream &hcz, fstream &hczb)//argumenty: zmienne plikowe
 {
     srand(time(NULL));
     char wybor = '5';
@@ -144,12 +140,12 @@ void menuGlowne(fstream &hkal, fstream &hcz, fstream &hczb)
         cout<<"1. Kalambury\n2. Czółko (różne hasła)\n3. Czółko(Batman)\n0. Wyjście\n";
         wybor = getch();
         switch (wybor)
-        {
-            case '1': menuGry("Kalambury", 1, hkal);break;//spr czy przekazuje prawidlowo ; drugi argument to wybor z tym ze jako int a nie char
+        {//drugi argument to wybor w postaci int - informacja dla dalszych funkcji którą grę uruchomiono
+            case '1': menuGry("Kalambury", 1, hkal);break;
             case '2': menuGry("Czółko", 2, hcz);break;
             case '3': menuGry("Czółko-Batman", 3, hczb);break;
             case '0': cout<<"Do widzenia :)\n";break;
-            default: cout<<"Błędny wybór"; wybor = '5'; Sleep(1000);
+            default: cout<<"Błędny wybór"; wybor = '5'; Sleep(800);
         }
     }
 }
@@ -178,7 +174,7 @@ void deinit(fstream &hkal, fstream &hcz, fstream &hczb)
 
 int main()
 {
-    system("chcp 65001");
+    system("chcp 65001");//umożliwia wyświetlanie polskich znaków w konsoli (nie działa w przypadku gdy wpisujemy je z klawiatury podczas działania programu)
     fstream hkal; //plik z haslami do kalambur
     fstream hcz;  // hasla do czółka
     fstream hczb; // hasła do czółka w temacie Batmana
@@ -187,8 +183,6 @@ int main()
     system("pause");
     return 0;
 }
-
-
 /*
 
 //*/
