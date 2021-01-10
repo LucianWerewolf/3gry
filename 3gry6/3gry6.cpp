@@ -22,8 +22,7 @@ vector<pair<string, string>> haslaCzBat;
 
 int losujHaslo(int rozmiar)
 {
-    int result = (rand() % rozmiar);//cout<<endl<<rozmiar<<endl;
-    return result;
+    return (rand() % rozmiar);
 }
 
 void wyswietlHaslo(int numer, int gra)
