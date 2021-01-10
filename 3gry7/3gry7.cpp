@@ -38,8 +38,7 @@ int losujHaslo(fstream &plik, int gra)//niech liczy ilosc linii i wtedy randa z 
         break;}
     }  //uzyskalismy ilosc hasel w pliku i zapisana jest ona w zmiennej ilosc_hasel
     plik.seekg(0, ios::beg);//ustawiamy ponownie wskaznik w pliku na jego poczatek by dalej mozna bylo go czytac
-    int result = ((rand() % ilosc_hasel) + 1);//losujemy jedno z nich
-    return result;//zwracamy numer wylosowanego hasla
+    return ((rand() % ilosc_hasel) + 1);//losujemy jedno z nich i zwracamy numer wylosowanego hasla
 }
 
 string pobierzHaslo(fstream &plik, int numer, int gra, int polowa)//argumenty kolejno: zmienna plikowa, numer hasła do wyciągnięcia z pliku, wybrana gra, które z dwóch słów(hasło czy zakazane słowo w czółku) będzie pobierane
