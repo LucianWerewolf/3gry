@@ -13,7 +13,7 @@ using namespace std;
 
 // gra w hasła v3.0
 //nie zapisuje do wektorow tylko na biezaco zczytuje hasla z plikow.
-//w trakcie roboty
+//w trakcie roboty; dodaj przywrocenie wskaznika na poczatek pliku
 
 int losujHaslo(fstream &plik, int gra)//niech liczy ilosc linii i wtedy randa z tego i wysyla spowrotem
 {
