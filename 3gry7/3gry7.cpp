@@ -22,9 +22,10 @@ enum rodzaj_slowa
     WYRAZENIE_ZAKAZANE
 };
 
-int losujHaslo(fstream &plik, int gra)//niech liczy ilosc linii i wtedy randa z tego i wysyla spowrotem
+int ilosc_hasel_kalambury = 0, ilosc_hasel_czolko = 0, ilosc_hasel_czolkoBat = 0;
+
+void licz_ilosc_hasel(fstream &plik, int gra)//liczymy ilosc hasel dla kazdej z gier
 {
-    int ilosc_hasel = 0;
     string linia;
     int nr_linii = 1;
     switch(gra)
@@ -33,21 +34,30 @@ int losujHaslo(fstream &plik, int gra)//niech liczy ilosc linii i wtedy randa z 
             while (!plik.eof())
             {
                 getline(plik, linia);
-                ilosc_hasel++;
+                ilosc_hasel_kalambury++;
             }
         break;}
         case CZOLKO: case CZOLKO_BAT:{//policzymy ilosc hasel a nie linii czyli kolejno: 1. haslo, 2. slowo zakazane, 3. odstep(pusta linia) i dolicza tylko po napotkaniu linii 1
             while (!plik.eof())
             {
                 getline(plik,linia);
-                if (nr_linii == 1) ilosc_hasel++;
+                if (nr_linii == 1 && gra == CZOLKO) ilosc_hasel_czolko++;
+                else if (nr_linii == 1 && gra == CZOLKO_BAT) ilosc_hasel_czolkoBat++;
                 nr_linii++;
                 if (nr_linii > 3) nr_linii = 1;
             }
         break;}
     }  //uzyskalismy ilosc hasel w pliku i zapisana jest ona w zmiennej ilosc_hasel
     plik.seekg(0, ios::beg);//ustawiamy ponownie wskaznik w pliku na jego poczatek by dalej mozna bylo go czytac
-    return ((rand() % ilosc_hasel) + 1);//losujemy jedno z nich i zwracamy numer wylosowanego hasla
+}
+
+int losujHaslo(int gra)//losujemy nr hasla do wyswietlenia
+{
+    int numer = 0;
+    if (gra == KALAMBURY) numer = ((rand() % ilosc_hasel_kalambury) + 1);
+    else if (gra == CZOLKO) numer = ((rand() % ilosc_hasel_czolko) + 1);
+    else if (gra == CZOLKO_BAT) numer = ((rand() % ilosc_hasel_czolkoBat) + 1);  
+    return numer;
 }
 
 string pobierzHaslo(fstream &plik, int numer, int gra, int rodzaj)//argumenty kolejno: zmienna plikowa, numer hasła do wyciągnięcia z pliku, wybrana gra, które z dwóch słów(hasło czy zakazane słowo w czółku) będzie pobierane
@@ -119,9 +129,9 @@ void menuGry(string nazwa, int gra, fstream &plikGry)//argumenty kolejno: nazwa 
         switch (wybor)
         {
             case '1': {//zależnie od wyboru gry uruchamia losowanie numeru hasła, a potem jego wyświetlanie przekazując informację o tym, która gra została wybrana
-                if (gra == KALAMBURY) {nr_hasla = losujHaslo(plikGry, gra); wyswietlHaslo(plikGry, nr_hasla, gra);}
-                else if (gra == CZOLKO) {nr_hasla = losujHaslo(plikGry, gra); wyswietlHaslo(plikGry, nr_hasla, gra);}
-                else if (gra == CZOLKO_BAT) {nr_hasla = losujHaslo(plikGry, gra); wyswietlHaslo(plikGry, nr_hasla, gra);}
+                if (gra == KALAMBURY) {nr_hasla = losujHaslo(gra); wyswietlHaslo(plikGry, nr_hasla, gra);}
+                else if (gra == CZOLKO) {nr_hasla = losujHaslo(gra); wyswietlHaslo(plikGry, nr_hasla, gra);}
+                else if (gra == CZOLKO_BAT) {nr_hasla = losujHaslo(gra); wyswietlHaslo(plikGry, nr_hasla, gra);}
                 break;}
             case '2': cout<<"Powrót do menu...\n"; Sleep(500);break;
             default: cout<<"Błędny wybór"; wybor = '5'; Sleep(500);
@@ -161,6 +171,9 @@ void init(fstream &hkal, fstream &hcz, fstream &hczb)
 
     if((hkal.good() == true) && (hcz.good() == true) && (hczb.good() == true)) 
     {
+        licz_ilosc_hasel(hkal, KALAMBURY);
+        licz_ilosc_hasel(hcz, CZOLKO);
+        licz_ilosc_hasel(hczb, CZOLKO_BAT);
         menuGlowne(hkal, hcz, hczb);
     }
 }
